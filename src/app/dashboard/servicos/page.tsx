@@ -41,7 +41,7 @@ export default function ServicosPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto h-[90vh] flex flex-col relative overflow-hidden">
+    <div className="space-y-6 max-w-7xl mx-auto w-full flex flex-col relative pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>

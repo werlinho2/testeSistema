@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Search, Send, Bot, PauseCircle, PlayCircle, ShieldAlert, UserCheck, Archive, Phone, Instagram, MessageCircle, SlidersHorizontal, Flame } from "lucide-react"
+import { Search, Send, Bot, PauseCircle, PlayCircle, ShieldAlert, UserCheck, Archive, Phone, Instagram, MessageCircle, SlidersHorizontal, Flame, ArrowLeft } from "lucide-react"
 
 type Message = { id: number; text: string; sender: 'ia_n8n' | 'paciente' | 'humano'; time: string }
 type Chat = { id: number; nome: string; telefone: string; status: 'aberto' | 'meu' | 'fechado'; botActive: boolean; canal: 'whatsapp' | 'instagram'; temperatura: 'quente' | 'morno' | 'frio'; mensagens: Message[] }
@@ -66,7 +66,7 @@ export default function AtendimentosPage() {
   const [filterHot, setFilterHot] = useState(false)
   
   const [chats, setChats] = useState<Chat[]>(INITIAL_CHATS)
-  const [activeChatId, setActiveChatId] = useState<number>(1)
+  const [activeChatId, setActiveChatId] = useState<number | null>(null)
   const [msgText, setMsgText] = useState("")
   
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -77,7 +77,7 @@ export default function AtendimentosPage() {
      (activeChannel === 'todos' || c.canal === activeChannel) &&
      (!filterHot || c.temperatura === 'quente')
   )
-  const activeChat = chats.find(c => c.id === activeChatId)
+  const activeChat = activeChatId ? chats.find(c => c.id === activeChatId) : null
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -86,7 +86,7 @@ export default function AtendimentosPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMsgText(e.target.value)
     if (e.target.value.length > 0 && activeChat?.botActive) {
-       toggleBot(activeChatId, false)
+       toggleBot(activeChat.id, false)
     }
   }
 
@@ -119,9 +119,9 @@ export default function AtendimentosPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto h-[90vh] flex flex-col relative overflow-hidden space-y-4">
+    <div className="max-w-[1400px] mx-auto h-[calc(100dvh-120px)] flex flex-col relative overflow-hidden space-y-4">
       {/* Header Funcional com Segmentação de Leads (STATUS) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 mt-2 px-2">
+      <div className={`flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 mt-2 px-2 hidden md:flex`}>
         <div>
           <h2 className="text-[25px] font-extrabold tracking-tight text-slate-800 leading-none">Inbox Atendimentos</h2>
           <p className="text-slate-500 text-sm mt-1.5 font-medium">Controle os leads rastreando quais precisam de mais ou menos atenção (Termometria).</p>
@@ -148,9 +148,9 @@ export default function AtendimentosPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-1 overflow-hidden h-full mt-2 mx-2">
+      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-1 overflow-hidden h-full mt-2 lg:mx-2">
         {/* Painel Esquerdo: Segmentação de Apps & Chats */}
-        <div className="w-[360px] shrink-0 border-r border-slate-100 flex flex-col bg-[#F8FAFC]/50">
+        <div className={`w-full md:w-[360px] shrink-0 border-r border-slate-100 flex-col bg-[#F8FAFC]/50 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-5 border-b border-slate-100 bg-white space-y-4">
              {/* Sub-Aba Filtro Global Solicitado pelo Usuário (Instagram VS WhatsApp VS Leads Quentes) */}
              <div className="flex gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
@@ -202,17 +202,20 @@ export default function AtendimentosPage() {
 
         {/* View Main de Conversa */}
         {!activeChat ? (
-           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
+           <div className="flex-1 hidden md:flex flex-col items-center justify-center bg-slate-50 text-slate-400">
              <MessageCircle className="w-12 h-12 mb-4 text-slate-300"/>
-             <h3 className="text-xl font-bold">Nenhum Chat em Foco</h3>
+             <h3 className="text-xl font-bold">Nenhum Chat selecionado</h3>
              <p className="text-sm">Clique em um lead no menu lateral ou alterne de aba.</p>
            </div>
         ) : (
-          <div className="flex-1 flex flex-col relative" style={{ backgroundColor: '#F0F5F8' }}>
+          <div className={`flex-1 flex-col relative ${activeChatId ? 'flex' : 'hidden md:flex'}`} style={{ backgroundColor: '#F0F5F8' }}>
             {/* Header Dinâmico de Identidade Visual pelo Canal */}
-            <div className={`h-[84px] shrink-0 border-b bg-white flex items-center justify-between px-8 z-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${activeChat.canal === 'whatsapp' ? 'border-emerald-500/20' : 'border-fuchsia-500/20'}`}>
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black shadow-sm ${activeChat.canal === 'whatsapp' ? 'bg-emerald-500 text-white' : 'bg-gradient-to-tr from-fuchsia-500 to-rose-500 text-white'}`}>
+            <div className={`h-[84px] shrink-0 border-b bg-white flex items-center justify-between px-3 sm:px-8 z-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${activeChat.canal === 'whatsapp' ? 'border-emerald-500/20' : 'border-fuchsia-500/20'}`}>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <button onClick={() => setActiveChatId(null)} className="md:hidden p-2 -ml-1 text-slate-400 hover:text-slate-600 rounded-full transition-colors">
+                   <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black shadow-sm shrink-0 ${activeChat.canal === 'whatsapp' ? 'bg-emerald-500 text-white' : 'bg-gradient-to-tr from-fuchsia-500 to-rose-500 text-white'}`}>
                   {activeChat.canal === 'whatsapp' ? <MessageCircle className="w-6 h-6"/> : <Instagram className="w-6 h-6"/>}
                 </div>
                 <div>
@@ -233,11 +236,11 @@ export default function AtendimentosPage() {
                       Mover para Fechados
                     </button>
                     {activeChat.botActive ? (
-                      <button onClick={() => toggleBot(activeChatId, false)} className="flex items-center gap-2 px-3 py-2 bg-white text-amber-600 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors shadow-sm border border-amber-200 hover:bg-amber-50">
+                      <button onClick={() => toggleBot(activeChat.id, false)} className="flex items-center gap-2 px-3 py-2 bg-white text-amber-600 rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors shadow-sm border border-amber-200 hover:bg-amber-50">
                         <PauseCircle className="w-4 h-4" /> Desligar Robô
                       </button>
                     ) : (
-                      <button onClick={() => toggleBot(activeChatId, true)} className={`flex items-center gap-2 px-3 py-2 text-white rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors shadow-sm ${activeChat.canal === 'whatsapp' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-fuchsia-500 hover:bg-fuchsia-600'}`}>
+                      <button onClick={() => toggleBot(activeChat.id, true)} className={`flex items-center gap-2 px-3 py-2 text-white rounded-lg text-[11px] font-black uppercase tracking-widest transition-colors shadow-sm ${activeChat.canal === 'whatsapp' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-fuchsia-500 hover:bg-fuchsia-600'}`}>
                         <PlayCircle className="w-4 h-4" /> Religar {activeChat.canal === 'whatsapp' ? 'ZapIA' : 'InstAI'}
                       </button>
                     )}

@@ -24,7 +24,7 @@ export default function CampanhasAdsPage() {
   const cplMedio = totalLeads > 0 ? (totalGasto / totalLeads) : 0
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto flex flex-col relative h-[90vh] overflow-hidden">
+    <div className="space-y-6 max-w-7xl mx-auto flex flex-col relative w-full pb-10">
       
       {/* Header Central */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 px-2 mt-2">
