@@ -3,12 +3,13 @@
 import { ReactNode, useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Calendar, Users, ClipboardList, Briefcase, DollarSign, Settings, Bell, Search, Zap, ShieldCheck, LogOut, User as UserIcon, LayoutDashboard, Terminal, Target, Megaphone, ScrollText } from "lucide-react"
+import { Calendar, Users, ClipboardList, Briefcase, DollarSign, Settings, Bell, Search, Zap, ShieldCheck, LogOut, User as UserIcon, LayoutDashboard, Terminal, Target, Megaphone, ScrollText, Menu, X } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [user, setUser] = useState({
       name: "Dra. Odonto Fav",
       role: "Diretoria",
@@ -61,9 +62,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-[#F6F8F9] text-slate-800 transition-colors">
+      
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-[2px] transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar Inspirado no Sistema de Gestão */}
-      <aside className="w-[260px] bg-[#F7F9F8] border-r border-[#E6EBE8] flex flex-col shrink-0 transition-colors">
-        <div className="flex h-20 items-center px-6 border-b border-[#E6EBE8]">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-[#F7F9F8] border-r border-[#E6EBE8] flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
+        <div className="flex h-20 items-center justify-between px-6 border-b border-[#E6EBE8]">
           <div className="flex items-center gap-3">
             {/* O Next.js vai carregar o logo.png que deve estar na pasta public/ do seu projeto */}
             <img 
@@ -82,8 +92,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <p className="text-[11px] font-medium text-slate-500 mt-0.5">Gestão Clínica</p>
             </div>
           </div>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-600">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <nav className="p-4 space-y-1.5 flex-1">
+        <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
           {authorizedNavItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href)
             return (
@@ -105,11 +118,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
       
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-white rounded-tl-2xl border-t border-l border-slate-100 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] transition-colors">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-white lg:rounded-tl-2xl border-t border-l border-slate-100 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] transition-colors w-full min-w-0">
         {/* Top Header */}
-        <header className="h-[76px] bg-white flex items-center px-8 justify-between shrink-0 transition-colors">
+        <header className="h-[76px] bg-white flex items-center px-4 lg:px-8 justify-between shrink-0 transition-colors gap-4">
+          
+          <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-slate-500 hover:text-slate-800 p-1 -ml-1">
+            <Menu className="w-6 h-6" />
+          </button>
+
           {/* Global Search */}
-          <div className="flex-1 max-w-xl relative group">
+          <div className="flex-1 max-w-xl relative group hidden sm:block">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-[#0095ff] transition-colors" />
             <input 
               type="text" 
@@ -171,7 +189,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Scrollable Dashboard Space */}
-        <div className="flex-1 overflow-auto p-8 pt-4">
+        <div className="flex-1 overflow-auto p-4 lg:p-8 pt-4">
           {children}
         </div>
       </main>

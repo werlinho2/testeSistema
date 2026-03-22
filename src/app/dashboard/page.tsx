@@ -17,22 +17,22 @@ export default function DashboardRootPage() {
   const current = DATA_STATE[timeRange]
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto h-[90vh] flex flex-col relative overflow-y-auto pb-10 pr-2">
+    <div className="space-y-6 max-w-7xl mx-auto w-full flex flex-col relative pb-10 sm:pr-2">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 mt-2">
         <div>
           <h2 className="text-[25px] font-extrabold tracking-tight text-slate-800 leading-none">Visão Global da Clínica</h2>
           <p className="text-slate-500 text-sm mt-1.5 font-medium">Você está no Cockpit Principal. Observe as métricas sendo filtradas reativamente.</p>
         </div>
-        <div className="flex bg-slate-200/50 p-1.5 rounded-xl shrink-0 border border-slate-200 shadow-inner">
-           <button onClick={() => setTimeRange('hoje')} className={`px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === 'hoje' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>Hoje</button>
-           <button onClick={() => setTimeRange('7')} className={`px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>7 Dias</button>
-           <button onClick={() => setTimeRange('30')} className={`px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>30 Dias</button>
+        <div className="flex bg-slate-200/50 p-1.5 rounded-xl shrink-0 border border-slate-200 shadow-inner overflow-x-auto w-full sm:w-auto mt-2 sm:mt-0">
+           <button onClick={() => setTimeRange('hoje')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === 'hoje' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>Hoje</button>
+           <button onClick={() => setTimeRange('7')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === '7' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>7 Dias</button>
+           <button onClick={() => setTimeRange('30')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${timeRange === '30' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>30 Dias</button>
         </div>
       </div>
 
       {/* Primary Global KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0 mt-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 shrink-0 mt-4 sm:mt-2">
          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden group">
            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><DollarSign className="w-16 h-16 text-white"/></div>
            <p className="text-[11px] uppercase tracking-widest font-black text-slate-400 mb-1 relative z-10">Faturamento Líquido</p>
@@ -67,8 +67,8 @@ export default function DashboardRootPage() {
       </div>
 
       {/* Gráfico Analítico de Leads Importado da Fase 2 */}
-      <div className="flex-1 min-h-[440px] mt-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-        <h3 className="text-lg font-extrabold text-slate-800 mb-4">Volume e Origem de Captação Qualificada</h3>
+      <div className="flex-1 min-h-[440px] mt-4 bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+        <h3 className="text-base sm:text-lg font-extrabold text-slate-800 mb-4">Volume e Origem de Captação Qualificada</h3>
         <div className="h-[320px] w-full">
            <LeadsOriginChart rawData={current.raw} />
         </div>

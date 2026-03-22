@@ -71,15 +71,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex text-slate-800 bg-white">
       {/* Lado Esquerdo - Formulário de Acesso */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 relative">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-16 md:px-24 xl:px-32 relative py-12 lg:py-0">
         <div className="max-w-md w-full mx-auto">
           {/* Logo Oficial OdontoFav */}
-          <div className="mb-12 flex items-center gap-3">
-             <img src="/logo.png" alt="OdontoFav Logo" className="h-[75px] w-auto object-contain" />
+          <div className="mb-10 lg:mb-12 flex items-center gap-3">
+             <img src="/logo.png" alt="OdontoFav Logo" className="h-[60px] lg:h-[75px] w-auto object-contain" />
           </div>
 
-          <h2 className="text-[32px] font-black text-slate-800 mb-2 tracking-tight">Bem-vindo(a) de volta!</h2>
-          <p className="text-slate-500 font-semibold mb-10 text-[15px]">Insira suas credenciais administrativas para acessar o ERP e Painel Omnichannel da OdontoFav.</p>
+          <h2 className="text-2xl sm:text-[32px] font-black text-slate-800 mb-2 tracking-tight">Bem-vindo(a) de volta!</h2>
+          <p className="text-slate-500 font-semibold mb-8 lg:mb-10 text-[14px] sm:text-[15px]">Insira suas credenciais administrativas para acessar o ERP e Painel Omnichannel da OdontoFav.</p>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-1.5">
