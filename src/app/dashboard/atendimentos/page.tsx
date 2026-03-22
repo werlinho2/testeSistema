@@ -119,38 +119,38 @@ export default function AtendimentosPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto h-[calc(100dvh-120px)] flex flex-col relative overflow-hidden space-y-4">
+    <div className="max-w-[1400px] mx-auto h-[calc(100dvh-76px)] md:h-[calc(100dvh-120px)] flex flex-col relative overflow-hidden md:space-y-4 -mx-4 -mt-4 mb-0 md:m-0 bg-white md:bg-transparent">
       {/* Header Funcional com Segmentação de Leads (STATUS) */}
-      <div className={`flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 mt-2 px-2 hidden md:flex`}>
+      <div className={`flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 pt-4 px-4 md:px-2 md:pt-2 md:mt-2 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
         <div>
-          <h2 className="text-[25px] font-extrabold tracking-tight text-slate-800 leading-none">Inbox Atendimentos</h2>
-          <p className="text-slate-500 text-sm mt-1.5 font-medium">Controle os leads rastreando quais precisam de mais ou menos atenção (Termometria).</p>
+          <h2 className="text-[22px] md:text-[25px] font-extrabold tracking-tight text-slate-800 leading-none">Atendimentos</h2>
+          <p className="text-slate-500 text-[13px] sm:text-sm mt-1 font-medium hidden md:block">Controle os leads rastreando quais precisam de mais ou menos atenção (Termometria).</p>
         </div>
-        <div className="flex bg-slate-200/50 p-1 rounded-xl shrink-0 border border-slate-200 shadow-inner">
+        <div className="flex bg-slate-100 md:bg-slate-200/50 p-1 rounded-xl shrink-0 border border-slate-200 md:shadow-inner overflow-x-auto w-full md:w-auto">
           <button 
             onClick={() => setActiveTab('aberto')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all ${activeTab === 'aberto' ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'aberto' ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
             <ShieldAlert className="w-4 h-4"/> Abertos (IA) <span className={`ml-1 px-2 py-0.5 rounded-md ${activeTab==='aberto'?'bg-amber-200 text-amber-800':'bg-slate-200 text-slate-500'}`}>{chats.filter(c=>c.status==='aberto').length}</span>
           </button>
           <button 
              onClick={() => setActiveTab('meu')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all ${activeTab === 'meu' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'meu' ? 'bg-[#0095ff] text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <UserCheck className="w-4 h-4"/> Triados (Meus) <span className={`ml-1 px-2 py-0.5 rounded-md ${activeTab==='meu'?'bg-white/20 text-white':'bg-slate-200 text-slate-500'}`}>{chats.filter(c=>c.status==='meu').length}</span>
+            <UserCheck className="w-4 h-4"/> Meus <span className={`ml-1 px-2 py-0.5 rounded-md ${activeTab==='meu'?'bg-white/20 text-white':'bg-slate-200 text-slate-500'}`}>{chats.filter(c=>c.status==='meu').length}</span>
           </button>
           <button 
              onClick={() => setActiveTab('fechado')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all ${activeTab === 'fechado' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[12.5px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'fechado' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'}`}
           >
             <Archive className="w-4 h-4"/> Fechados
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-1 overflow-hidden h-full mt-2 lg:mx-2">
+      <div className="bg-white md:rounded-2xl md:border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-1 overflow-hidden h-full md:mt-2 lg:mx-2 text-[14px] md:text-base border-t md:border-t-0 mt-3 md:mt-0">
         {/* Painel Esquerdo: Segmentação de Apps & Chats */}
-        <div className={`w-full md:w-[360px] shrink-0 border-r border-slate-100 flex-col bg-[#F8FAFC]/50 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-[360px] shrink-0 md:border-r border-slate-100 flex-col bg-white md:bg-[#F8FAFC]/50 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-5 border-b border-slate-100 bg-white space-y-4">
              {/* Sub-Aba Filtro Global Solicitado pelo Usuário (Instagram VS WhatsApp VS Leads Quentes) */}
              <div className="flex gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner">
