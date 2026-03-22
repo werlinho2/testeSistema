@@ -119,7 +119,7 @@ export default function AtendimentosPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto h-[calc(100dvh-76px)] md:h-[calc(100dvh-120px)] flex flex-col relative overflow-hidden md:space-y-4 -mx-4 -mt-4 mb-0 md:m-0 bg-white md:bg-transparent">
+    <div className="fixed inset-x-0 bottom-0 top-[76px] z-40 md:static md:max-w-[1400px] md:mx-auto md:h-[calc(100vh-120px)] flex flex-col overflow-hidden space-y-0 md:space-y-4 bg-white md:bg-transparent">
       {/* Header Funcional com Segmentação de Leads (STATUS) */}
       <div className={`flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 pt-4 px-4 md:px-2 md:pt-2 md:mt-2 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
         <div>
