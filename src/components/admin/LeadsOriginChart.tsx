@@ -43,7 +43,7 @@ export function LeadsOriginChart({ rawData }: { rawData: { origem_lead: string }
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: number) => [`${value} Leads`, "Captação"]}
+            formatter={(value: any) => [`${value} Leads`, "Captação"]}
             contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 20px -3px rgb(0 0 0 / 0.15)", fontWeight: "bold", padding: "12px" }}
             itemStyle={{ color: "#334155", fontWeight: "900" }}
           />
