@@ -6,20 +6,24 @@ import { LeadCard } from "./LeadCard"
 interface ColumnProps {
   id: FunilStatus
   title: string
+  subtitle?: string
   leads: Lead[]
 }
 
-export function Column({ id, title, leads }: ColumnProps) {
+export function Column({ id, title, subtitle, leads }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: "Column", id },
   })
 
   return (
-    <div className="flex w-80 flex-col shrink-0">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="font-medium text-sm text-foreground">{title}</h3>
-        <span className="text-xs font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+    <div className="flex w-[340px] flex-col shrink-0">
+      <div className="flex items-start justify-between mb-4 px-1.5 pt-1">
+        <div>
+          <h3 className="font-extrabold text-[15px] text-slate-800 leading-none mb-1.5 uppercase tracking-tight">{title}</h3>
+          {subtitle && <p className="text-[11.5px] font-semibold text-slate-500 leading-tight">{subtitle}</p>}
+        </div>
+        <span className="text-[11px] font-black bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-md shadow-sm shrink-0">
           {leads.length}
         </span>
       </div>

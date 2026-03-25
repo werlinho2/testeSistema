@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Calendar, Users, ClipboardList, Briefcase, DollarSign, Settings, Bell, Search, Zap, ShieldCheck, LogOut, User as UserIcon, LayoutDashboard, Terminal, Target, Megaphone, ScrollText, Menu, X } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { supabase } from "@/lib/supabase"
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -17,18 +18,34 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       initials: "OF",
       type: "admin"
   })
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
+  const [notificacoes, setNotificacoes] = useState<any[]>([])
+
+  const fetchNotificacoes = async () => {
+     const { data } = await supabase.from('notificacoes').select('*').order('created_at', { ascending: false }).limit(10)
+     if (data) setNotificacoes(data)
+  }
 
   useEffect(() => {
-     // Carregando sessão Mock do browser criada na página de Login
+     // Carregando sessão Mock do browser
      const storedUser = localStorage.getItem("odontofav_user")
      if (storedUser) {
         try { setUser(JSON.parse(storedUser)) } catch (e) {}
      }
+
+     fetchNotificacoes()
+     const channel = supabase.channel('notif-changes')
+       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificacoes' }, (payload) => {
+         setNotificacoes(prev => [payload.new, ...prev].slice(0, 10))
+       })
+       .subscribe()
+
+     return () => { supabase.removeChannel(channel) }
   }, [])
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Pipeline CRM", href: "/dashboard/crm", icon: Target },
+    { name: "Kanban", href: "/dashboard/kanban", icon: Target },
     { name: "Campanhas (Ads)", href: "/dashboard/campanhas", icon: Megaphone },
     { name: "Agenda", href: "/dashboard/agenda", icon: Calendar },
     { name: "Pacientes", href: "/dashboard/pacientes", icon: Users },
@@ -51,7 +68,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
      
      // Recepção não visualiza Caixas Fechadas ou Engenharia (Logs/Ads/Financeiro)
      if (user.type === 'recepcao') {
-        const recepcaoRoutes = ['/dashboard', '/dashboard/crm', '/dashboard/agenda', '/dashboard/pacientes', '/dashboard/atendimentos']
+        const recepcaoRoutes = ['/dashboard', '/dashboard/kanban', '/dashboard/agenda', '/dashboard/pacientes', '/dashboard/atendimentos']
         items = items.filter(item => recepcaoRoutes.includes(item.href))
      }
 
@@ -63,54 +80,58 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-[#F6F8F9] text-slate-800 transition-colors">
       
-      {/* Mobile Overlay */}
+      {/* Global Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-[2px] transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 z-40 backdrop-blur-[2px] transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* Sidebar Inspirado no Sistema de Gestão */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[260px] bg-[#F7F9F8] border-r border-[#E6EBE8] flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
-        <div className="flex h-20 items-center justify-between px-6 border-b border-[#E6EBE8]">
-          <div className="flex items-center gap-3">
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-100 flex flex-col shrink-0 transition-all duration-300 ease-in-out group overflow-hidden w-[260px] lg:w-[72px] lg:hover:w-[260px] hover:shadow-2xl ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="flex h-20 items-center px-5 border-b border-slate-50 shrink-0">
+          <div className="flex items-center gap-3 w-[220px]">
             {/* O Next.js vai carregar o logo.png que deve estar na pasta public/ do seu projeto */}
             <img 
               src="/logo.png" 
               alt="Logo OdontoFav" 
-              className="h-[60px] w-auto object-contain"
+              className="h-[40px] w-auto object-contain cursor-pointer"
               onError={(e) => {
-                // Fallback visual caso o arquivo logo.png ainda não esteja salvo na pasta public
+                // Fallback visual
                 (e.target as HTMLImageElement).style.display = 'none';
                 (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
               }}
             />
             {/* Fallback de texto caso a imagem não exista */}
             <div className="hidden">
-              <h1 className="text-base font-extrabold text-slate-800 leading-none">OdontoFav</h1>
-              <p className="text-[11px] font-medium text-slate-500 mt-0.5">Gestão Clínica</p>
+              <div className="w-8 h-8 rounded-lg bg-[#0095ff] text-white flex items-center justify-center font-black shrink-0">OF</div>
+            </div>
+            <div className="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+               <h1 className="text-base font-extrabold text-slate-800 leading-none whitespace-nowrap">OdontoFav</h1>
             </div>
           </div>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-600">
+          <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-slate-400 hover:text-slate-600 p-1 ml-auto">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <nav className="p-4 space-y-1.5 flex-1 overflow-y-auto">
+        <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden">
           {authorizedNavItems.map((item) => {
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href)
             return (
               <Link 
                 key={item.href} 
                 href={item.href} 
-                className={`flex items-center gap-3.5 rounded-xl px-4 py-3 text-[14px] font-medium transition-all ${
+                className={`flex items-center gap-4 rounded-xl px-3.5 py-3 text-[14px] font-bold transition-all whitespace-nowrap ${
                   isActive 
-                  ? "bg-[#0095ff] text-white shadow-md shadow-[#0095ff]/20" 
-                  : "text-slate-600 hover:bg-[#EDF2F0] hover:text-slate-900"
+                  ? "bg-[#0095ff]/10 text-[#0095ff]" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
-                <item.icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
-                {item.name}
+                <div className="shrink-0 flex items-center justify-center">
+                   <item.icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                <span className="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100">{item.name}</span>
               </Link>
             )
           })}
@@ -118,11 +139,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
       
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-white lg:rounded-tl-2xl border-t border-l border-slate-100 shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] transition-colors w-full min-w-0">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-white transition-all w-full min-w-0 lg:pl-[72px]">
         {/* Top Header */}
         <header className="h-[76px] bg-white flex items-center px-4 lg:px-8 justify-between shrink-0 transition-colors gap-4">
           
-          <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-slate-500 hover:text-slate-800 p-1 -ml-1">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="text-slate-500 hover:text-slate-800 p-1 -ml-1">
             <Menu className="w-6 h-6" />
           </button>
 
@@ -139,10 +160,48 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Header Actions / User */}
           <div className="flex items-center gap-4 sm:gap-6 ml-auto">
             <ThemeToggle />
-            <button className="relative text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full border-2 border-white translate-x-0.5 -translate-y-0.5"></span>
-            </button>
+            <div className="relative">
+              <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="relative text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1">
+                <Bell className="h-5 w-5" />
+                {notificacoes.filter(n => !n.lida).length > 0 && (
+                  <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full border-2 border-white translate-x-px -translate-y-px animate-pulse"></span>
+                )}
+              </button>
+
+              {isNotifOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)}></div>
+                  <div className="absolute right-0 top-full mt-3 w-80 max-w-[90vw] bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-5 py-3 border-b border-slate-50 flex justify-between items-center bg-[#F8FAFC]/50">
+                      <h3 className="text-[13px] font-extrabold text-slate-800 uppercase tracking-widest">Notificações</h3>
+                      {notificacoes.filter(n => !n.lida).length > 0 && <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{notificacoes.filter(n => !n.lida).length} novas</span>}
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto">
+                      {notificacoes.length === 0 ? (
+                        <div className="p-6 text-center text-slate-400 font-medium text-[13px]">Nenhum alerta recente.</div>
+                      ) : (
+                        notificacoes.map(n => (
+                           <div key={n.id} onClick={async () => {
+                              if (!n.lida) {
+                                 await supabase.from('notificacoes').update({ lida: true }).eq('id', n.id)
+                                 setNotificacoes(prev => prev.map(old => old.id === n.id ? { ...old, lida: true } : old))
+                              }
+                           }} className={`p-4 border-b border-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${!n.lida ? 'bg-blue-50/30' : 'opacity-70'}`}>
+                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${n.tipo === 'success' ? 'bg-emerald-100 text-emerald-500' : n.tipo === 'error' ? 'bg-rose-100 text-rose-500' : 'bg-blue-100 text-blue-500'}`}>
+                               <Bell className="w-4 h-4"/>
+                             </div>
+                             <div>
+                               <p className="text-[13px] font-bold text-slate-800 leading-tight mb-0.5">{n.titulo}</p>
+                               <p className="text-[12px] text-slate-500 font-medium leading-relaxed">{n.mensagem}</p>
+                             </div>
+                           </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <div className="relative border-l border-slate-100 pl-6">
               <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-3 cursor-pointer group">
                  <div className="text-right flex flex-col items-end">

@@ -17,17 +17,21 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import { Lead, FunilStatus } from "@/types"
 import { Column } from "./Column"
 import { LeadCard } from "./LeadCard"
+import { useCRMContext } from "@/contexts/CRMContext"
 
-const COLUMNS: { id: FunilStatus; title: string }[] = [
-  { id: "novo_contato", title: "Novos Contatos" },
-  { id: "ia_atendendo", title: "IA Atendendo" },
-  { id: "qualificado", title: "Qualificados" },
-  { id: "agendado", title: "Agendados" },
-  { id: "perdido", title: "Perdidos" },
+const COLUMNS: { id: FunilStatus; title: string; subtitle?: string }[] = [
+  { id: "novo_lead", title: "Novo Lead", subtitle: "(Primeiro Contato)" },
+  { id: "qualificado", title: "Qualificado", subtitle: "(IA coletando informações)" },
+  { id: "agendado", title: "Agendado", subtitle: "(Pendente confirmação)" },
+  { id: "confirmado", title: "Confirmado", subtitle: "(Paciente confirmou presença)" },
+  { id: "compareceu", title: "Compareceu", subtitle: "(Paciente compareceu à consulta)" },
+  { id: "no_show", title: "No-show", subtitle: "(Paciente não compareceu)" },
+  { id: "perdido", title: "Perdido", subtitle: "(Paciente Cancelou/Não respondeu)" },
+  { id: "pos_venda", title: "Pós-Venda", subtitle: "(Follow-up pós-consulta)" }
 ]
 
-export function Board({ initialLeads }: { initialLeads: Lead[] }) {
-  const [leads, setLeads] = useState<Lead[]>(initialLeads)
+export function Board() {
+  const { leads, updateLeadStatus } = useCRMContext()
   const [activeLead, setActiveLead] = useState<Lead | null>(null)
 
   const sensors = useSensors(
@@ -45,38 +49,25 @@ export function Board({ initialLeads }: { initialLeads: Lead[] }) {
     const { active, over } = event
     if (!over) return
 
-    const activeId = active.id
+    const activeId = active.id as string
     const overId = over.id
 
     if (activeId === overId) return
 
-    const isActiveLead = active.data.current?.type === "Lead"
-    const isOverLead = over.data.current?.type === "Lead"
     const isOverColumn = over.data.current?.type === "Column"
+    const isOverLead = over.data.current?.type === "Lead"
 
-    if (!isActiveLead) return
+    if (isOverColumn) {
+      updateLeadStatus(activeId, overId as FunilStatus)
+      return
+    }
 
-    setLeads((prev) => {
-      const activeIndex = prev.findIndex((l) => l.id === activeId)
-      const overIndex = prev.findIndex((l) => l.id === overId)
-
-      if (isOverColumn) {
-        const activeLead = prev[activeIndex]
-        activeLead.status_funil = overId as FunilStatus
-        return [...prev.slice(0, activeIndex), ...prev.slice(activeIndex + 1), activeLead]
+    if (isOverLead) {
+      const overLeadStatus = leads.find((l) => l.id === overId)?.status_funil
+      if (overLeadStatus) {
+        updateLeadStatus(activeId, overLeadStatus)
       }
-
-      if (isOverLead) {
-        const activeLead = prev[activeIndex]
-        activeLead.status_funil = prev[overIndex].status_funil
-        const newLeads = [...prev]
-        newLeads.splice(activeIndex, 1)
-        newLeads.splice(overIndex, 0, activeLead)
-        return newLeads
-      }
-
-      return prev
-    })
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -97,6 +88,7 @@ export function Board({ initialLeads }: { initialLeads: Lead[] }) {
             key={col.id} 
             id={col.id} 
             title={col.title} 
+            subtitle={col.subtitle}
             leads={leads.filter((l) => l.status_funil === col.id)} 
           />
         ))}

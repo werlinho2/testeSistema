@@ -1,10 +1,36 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Cpu, Zap, Activity, MessageCircle, Send, Plus, Fingerprint, Network, ShieldCheck, X, Search, GitMerge, FileJson, ArrowRight, Instagram, Target, ShieldAlert } from "lucide-react"
+import { Cpu, Zap, Activity, MessageCircle, Send, Plus, Fingerprint, Network, ShieldCheck, X, Search, GitMerge, FileJson, ArrowRight, Instagram, Target, ShieldAlert, Database, Trash2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function AutomacoesPage() {
   const [onlineStatus, setOnlineStatus] = useState({ wp: true, ig: false, mcp: false })
+  const [activeTab, setActiveTab] = useState<'status' | 'rag'>('status')
+  
+  const [knowledges, setKnowledges] = useState<any[]>([])
+  const [knowledgeText, setKnowledgeText] = useState("")
+
+  const fetchKnowledge = async () => {
+    const { data } = await supabase.from('knowledge').select('*').order('created_at', { ascending: false })
+    if (data) setKnowledges(data)
+  }
+
+  const handleAddKnowledge = async () => {
+    if (!knowledgeText.trim()) return
+    await supabase.from('knowledge').insert({ content: knowledgeText, metadata: { author: 'admin' } })
+    setKnowledgeText("")
+    fetchKnowledge()
+  }
+
+  const handleDeleteKnowledge = async (id: string) => {
+    await supabase.from('knowledge').delete().eq('id', id)
+    fetchKnowledge()
+  }
+
+  useEffect(() => {
+    if (activeTab === 'rag') fetchKnowledge()
+  }, [activeTab])
   const [setupModal, setSetupModal] = useState<'wp' | 'ig' | 'mcp' | null>(null)
   
   const [webhookUrl, setWebhookUrl] = useState("")
@@ -49,6 +75,18 @@ export default function AutomacoesPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto flex flex-col relative h-[90vh] overflow-y-auto pr-4 pb-12">
+      {/* TABS HEADER */}
+      <div className="flex gap-6 border-b border-slate-200 dark:border-[#27272A] mt-2 mb-2">
+        <button onClick={() => setActiveTab('status')} className={`pb-3 text-[14px] font-extrabold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'status' ? 'border-[#0095ff] text-[#0095ff]' : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>
+          Painel de Automações
+        </button>
+        <button onClick={() => setActiveTab('rag')} className={`pb-3 text-[14px] font-extrabold uppercase tracking-wider transition-all border-b-2 flex items-center gap-2 ${activeTab === 'rag' ? 'border-indigo-500 text-indigo-500' : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>
+          <Database className="w-4 h-4" /> Base RAG (IA)
+        </button>
+      </div>
+
+      {activeTab === 'status' ? (
+        <>
       {/* Header Central */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 mt-2">
         <div>
@@ -276,6 +314,42 @@ export default function AutomacoesPage() {
                    </button>
                 </form>
              </div>
+          </div>
+        </div>
+      )}
+
+        </>
+      ) : (
+        <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+          <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl p-6 shadow-sm">
+            <h3 className="text-[18px] font-extrabold text-indigo-900 dark:text-indigo-400 mb-2">Adicionar Novo Conhecimento</h3>
+            <p className="text-[13px] text-indigo-700 dark:text-indigo-300/80 font-medium mb-4">
+              Escreva regras, preços, serviços ou instruções para o robô. O n8n lerá isso antes de responder ao cliente.
+            </p>
+            <textarea
+              value={knowledgeText}
+              onChange={e => setKnowledgeText(e.target.value)}
+              placeholder="Ex: O Dr. Pedro atende apenas casos de implante nas quartas-feiras de manhã."
+              className="w-full bg-white dark:bg-[#121214] border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4 text-[14px] text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] mb-4"
+            />
+            <button onClick={handleAddKnowledge} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-[13px] uppercase tracking-widest shadow-lg shadow-indigo-600/30 transition-all">
+              Salvar Diretriz na IA
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-[#121214] rounded-2xl border border-slate-200/60 dark:border-[#27272A] shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-[#27272A] bg-slate-50 dark:bg-[#09090A]">
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">Diretrizes Ativas no Cérebro da IA</h3>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-[#27272A]">
+              {knowledges.length === 0 && <div className="p-8 text-center text-slate-400 font-medium text-sm">Nenhum conhecimento injetado ainda.</div>}
+              {knowledges.map(k => (
+                <div key={k.id} className="p-6 flex items-start justify-between gap-4 hover:bg-slate-50 dark:hover:bg-[#1A1A1E] transition-colors">
+                  <div className="text-[14px] text-slate-700 dark:text-slate-300 font-medium leading-relaxed">{k.content}</div>
+                  <button onClick={() => handleDeleteKnowledge(k.id)} className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"><Trash2 className="w-5 h-5"/></button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

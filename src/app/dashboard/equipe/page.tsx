@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Plus, MoreHorizontal, X, User, HeartPulse, ShieldAlert, CheckCircle, Trash2, UserCog } from "lucide-react"
 
 const INITIAL_EQUIPE = [
@@ -11,11 +11,39 @@ const INITIAL_EQUIPE = [
   { id: 3, nome: "João Paulo", email: "recepcao@odontofav.com.br", cargo: "Recepcionista Clínico", permissao: "CRM e Chat", icon: UserCog, color: "blue" }
 ]
 
+const ROLE_WEIGHTS: Record<string, number> = {
+  "Líder de Desenvolvimento": 100,
+  "Administrador / Sócio": 80,
+  "Gerente Comercial": 60,
+  "Dentista Invisalign": 40,
+  "Dentista Pleno": 40,
+  "Recepcionista Clínico": 20,
+  "Assistente Administrativo": 20,
+  "Especialista (Orto)": 40
+}
+
 export default function EquipePage() {
   const [membros, setMembros] = useState(INITIAL_EQUIPE)
   const [searchTerm, setSearchTerm] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newMembro, setNewMembro] = useState({ nome: "", email: "", cargo: "Dentista Pleno" })
+  
+  const [currentUserWeight, setCurrentUserWeight] = useState(0)
+
+  // Hard Security Check
+  useEffect(() => {
+     const st = localStorage.getItem("odontofav_user")
+     if (st) {
+        const parsed = JSON.parse(st)
+        if (parsed.type === 'dev' || parsed.cargo === 'Líder de Desenvolvimento') setCurrentUserWeight(100)
+        else if (parsed.cargo === 'Administrador / Sócio' || parsed.type === 'admin') setCurrentUserWeight(80)
+        else if (parsed.cargo === 'Gerente Comercial' || parsed.type === 'gerente') setCurrentUserWeight(60)
+        else setCurrentUserWeight(20)
+     } else {
+        // Fallback p/ o mockup: assume god mode (Líder) se não estiver logado
+        setCurrentUserWeight(100) 
+     }
+  }, [])
 
   const filteredMembros = membros.filter(m => m.nome.toLowerCase().includes(searchTerm.toLowerCase()) || m.cargo.toLowerCase().includes(searchTerm.toLowerCase()))
 
@@ -27,18 +55,22 @@ export default function EquipePage() {
         nome: newMembro.nome,
         email: newMembro.email,
         cargo: newMembro.cargo,
-        permissao: "Prontuários e Agenda",
-        icon: HeartPulse,
-        color: "emerald"
+        permissao: "Nova Conta Restrita",
+        icon: User,
+        color: "slate"
      }
      setMembros([...membros, obj])
      setNewMembro({ nome: "", email: "", cargo: "Dentista Pleno" })
      setIsModalOpen(false)
   }
 
-  const handleRemove = (id: number) => {
-     if (id === 0) return alert("Erro: Você não pode remover o Engenheiro Chefe.")
-     setMembros(membros.filter(m => m.id !== id))
+  const handleRemove = (membro: any) => {
+     const targetWeight = ROLE_WEIGHTS[membro.cargo] || 20;
+     if (currentUserWeight <= targetWeight && currentUserWeight !== 100) {
+        return alert("Acesso Negado: Seu nível hierárquico é menor ou igual ao deste colaborador. Você não tem permissão de remoção.")
+     }
+     if (membro.id === 0) return alert("Erro Crítico de Sistema: Impossível remover o Arquiteto de Software.")
+     setMembros(membros.filter(m => m.id !== membro.id))
   }
 
   return (
@@ -113,10 +145,14 @@ export default function EquipePage() {
                     </span>
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={()=>handleRemove(membro.id)} className="p-2 text-rose-400 hover:text-rose-600 bg-white border border-slate-200 hover:bg-rose-50 rounded-lg shadow-sm transition-all">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                      {(currentUserWeight > (ROLE_WEIGHTS[membro.cargo] || 20) || currentUserWeight === 100) ? (
+                        <button onClick={()=>handleRemove(membro)} className="p-2 text-rose-400 hover:text-rose-600 bg-white border border-slate-200 hover:bg-rose-50 rounded-lg shadow-sm transition-all" title="Remover Usuário">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <span className="p-2 text-slate-300 pointer-events-none" title="Acesso Negado"><ShieldAlert className="w-4 h-4" /></span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -146,6 +182,9 @@ export default function EquipePage() {
                    <div className="space-y-2">
                        <label className="text-[11px] font-black tracking-widest uppercase text-slate-500 ml-1">Cargo Comercial</label>
                        <select value={newMembro.cargo} onChange={e=>setNewMembro({...newMembro, cargo: e.target.value})} className="w-full px-5 py-3.5 bg-[#F8FAFC] border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#0095ff]/30 focus:border-[#0095ff] outline-none">
+                          {currentUserWeight >= 100 && <option>Líder de Desenvolvimento</option>}
+                          {currentUserWeight >= 80 && <option>Administrador / Sócio</option>}
+                          {currentUserWeight >= 60 && <option>Gerente Comercial</option>}
                           <option>Dentista Pleno</option>
                           <option>Especialista (Orto)</option>
                           <option>Assistente Administrativo</option>
